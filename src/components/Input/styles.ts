@@ -3,10 +3,13 @@ import styled, { css } from 'styled-components';
 interface ContainerProps {
   isFocused: boolean;
   isFilled: boolean;
+  isValid: boolean;
 }
 
 export const Container = styled.div<ContainerProps>`
   display: flex;
+  align-items: center;
+
   background: #232129;
   border-radius: 10px;
   padding: 16px;
@@ -32,6 +35,13 @@ export const Container = styled.div<ContainerProps>`
       color: #f99000;
     `}
 
+  ${(props) =>
+    props.isValid &&
+    css`
+      color: #f44;
+      border-color: #f44;
+    `}
+
   input {
     flex: 1;
 
@@ -47,5 +57,13 @@ export const Container = styled.div<ContainerProps>`
 
   svg {
     margin-right: 16px;
+  }
+`;
+
+export const Error = styled.div`
+  height: 20px;
+  margin-left: 16px;
+  svg {
+    margin: 0;
   }
 `;
