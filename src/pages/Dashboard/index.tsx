@@ -1,5 +1,6 @@
+/* eslint-disable react/jsx-key */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { isToday, format } from 'date-fns';
+import { isToday, format, parseISO } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import DayPicker, { DayModifiers } from 'react-day-picker';
 import 'react-day-picker/lib/style.css';
@@ -30,6 +31,7 @@ interface MonthAvailabilityItem {
 interface Appointment {
   id: string;
   date: string;
+  hourFormatted: string;
   user: {
     name: string;
     avatar_url: string;
@@ -73,7 +75,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     api
-      .get('/appointments/me', {
+      .get<Appointment[]>('/appointments/me', {
         params: {
           year: selectedDate.getFullYear(),
           month: selectedDate.getMonth() + 1,
@@ -81,7 +83,13 @@ const Dashboard: React.FC = () => {
         },
       })
       .then((response) => {
-        setAppointments(response.data);
+        const appointmentsFormatted = response.data.map((appointment) => {
+          return {
+            ...appointment,
+            hourFormatted: format(parseISO(appointment.date), 'HH:mm'),
+          };
+        });
+        setAppointments(appointmentsFormatted);
       });
   }, [selectedDate]);
 
@@ -108,6 +116,18 @@ const Dashboard: React.FC = () => {
     });
   }, [selectedDate]);
 
+  const mornignAppointments = useMemo(() => {
+    return appointments.filter((appointment) => {
+      return parseISO(appointment.date).getHours() < 12;
+    });
+  }, [appointments]);
+
+  const afternoonAppointments = useMemo(() => {
+    return appointments.filter((appointment) => {
+      return parseISO(appointment.date).getHours() >= 12;
+    });
+  }, [appointments]);
+
   return (
     <Container>
       <Header>
@@ -131,7 +151,7 @@ const Dashboard: React.FC = () => {
         <Schedule>
           <h1>Horários agendados</h1>
           <p>
-            {isToday(selectedDate) && <span>'Hoje'</span>}
+            {isToday(selectedDate) && <span>Hoje</span>}
             <span>{selectedDateAsText}</span>
             <span>{selectedWeekDay}</span>
           </p>
@@ -152,34 +172,41 @@ const Dashboard: React.FC = () => {
 
           <Section>
             <strong>Manhã</strong>
-            <Appointment>
-              <span>
-                <FiClock /> 08:00
-              </span>
 
-              <div>
-                <img
-                  src="https://avatars.githubusercontent.com/u/31441201?s=460&u=1cf93b13751255a1e6507b2e0f8faf1384e4294f&v=4"
-                  alt="Matheus Lino"
-                />
-                <strong>Matheus Lino</strong>
-              </div>
-            </Appointment>
+            {mornignAppointments.map((appointment) => (
+              <Appointment key={appointment.id}>
+                <span>
+                  <FiClock />
+                  {appointment.hourFormatted}
+                </span>
+
+                <div>
+                  <img
+                    src={appointment.user.avatar_url}
+                    alt={appointment.user.name}
+                  />
+                  <strong>{appointment.user.name}</strong>
+                </div>
+              </Appointment>
+            ))}
 
             <strong>Tarde</strong>
-            <Appointment>
-              <span>
-                <FiClock /> 08:00
-              </span>
+            {afternoonAppointments.map((appointment) => (
+              <Appointment key={appointment.id}>
+                <span>
+                  <FiClock />
+                  {appointment.hourFormatted}
+                </span>
 
-              <div>
-                <img
-                  src="https://avatars.githubusercontent.com/u/31441201?s=460&u=1cf93b13751255a1e6507b2e0f8faf1384e4294f&v=4"
-                  alt="Matheus Lino"
-                />
-                <strong>Matheus Lino</strong>
-              </div>
-            </Appointment>
+                <div>
+                  <img
+                    src={appointment.user.avatar_url}
+                    alt={appointment.user.name}
+                  />
+                  <strong>{appointment.user.name}</strong>
+                </div>
+              </Appointment>
+            ))}
           </Section>
         </Schedule>
         <Calendar>
