@@ -33,7 +33,7 @@ interface Appointment {
   user: {
     name: string;
     avatar_url: string;
-  }
+  };
 }
 
 const Dashboard: React.FC = () => {
@@ -72,16 +72,18 @@ const Dashboard: React.FC = () => {
   }, [currentMonth, user.id]);
 
   useEffect(() => {
-    api.get('/appointments/me', {
-      params: {
-        year: selectedDate.getFullYear(),
-        month: selectedDate.getMonth() +1,
-        day: selectedDate.getDate()
-      }
-    }).then(response => {
-      setAppointments(response.data)
-    })
-  }, [selectedDate])
+    api
+      .get('/appointments/me', {
+        params: {
+          year: selectedDate.getFullYear(),
+          month: selectedDate.getMonth() + 1,
+          day: selectedDate.getDate(),
+        },
+      })
+      .then((response) => {
+        setAppointments(response.data);
+      });
+  }, [selectedDate]);
 
   const disableDays = useMemo(() => {
     const dates = monthAvailability
@@ -96,15 +98,15 @@ const Dashboard: React.FC = () => {
 
   const selectedDateAsText = useMemo(() => {
     return format(selectedDate, "'Dia' dd 'de' MMMM", {
-      locale: ptBR
-    })
-  }, [selectedDate])
+      locale: ptBR,
+    });
+  }, [selectedDate]);
 
   const selectedWeekDay = useMemo(() => {
     return format(selectedDate, 'cccc', {
-      locale: ptBR
-    })
-  }, [selectedDate])
+      locale: ptBR,
+    });
+  }, [selectedDate]);
 
   return (
     <Container>
